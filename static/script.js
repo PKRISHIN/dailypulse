@@ -16,12 +16,16 @@
   }
 
   const GREEN = '#39ff6a';
-  const GREEN_GLOW = 'rgba(57,255,106,0.55)';
+  const GREEN_GLOW = 'rgba(57,255,106,0.35)';
 
-  const BEATS_VISIBLE = 3;
+  let BEATS_VISIBLE = 6;
   const SPEED = 140;
   const midY = () => height / 2;
   const amp = () => height * 0.30;
+
+  function randomBeatCount(){
+    return Math.floor(Math.random() * 4) + 5;
+  }
 
   function beatShape(local){
     if (local > 0.40 && local < 0.45) return (local - 0.40) * 18;
@@ -52,13 +56,14 @@
 
     if (newSweepX >= width){
       ctx.clearRect(0, 0, width, height);
+      BEATS_VISIBLE = randomBeatCount();
       sweepX = 0;
       lastY = yAt(0);
     } else {
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 1.4;
       ctx.strokeStyle = GREEN;
       ctx.shadowColor = GREEN_GLOW;
-      ctx.shadowBlur = 8;
+      ctx.shadowBlur = 3;
 
       ctx.beginPath();
       ctx.moveTo(sweepX, lastY);
@@ -73,8 +78,8 @@
       ctx.beginPath();
       ctx.fillStyle = GREEN;
       ctx.shadowColor = GREEN_GLOW;
-      ctx.shadowBlur = 12;
-      ctx.arc(sweepX, y, 3.5, 0, Math.PI * 2);
+      ctx.shadowBlur = 6;
+      ctx.arc(sweepX, y, 2.5, 0, Math.PI * 2);
       ctx.fill();
       ctx.shadowBlur = 0;
     }
