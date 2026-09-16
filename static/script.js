@@ -1,4 +1,4 @@
-/* ===================== Hero pulse-line animation (Canvas 2D — continuous scrolling monitor trace) ===================== */
+/* ===================== Hero pulse-line animation (Canvas 2D — left-to-right sweep, ventilator style) ===================== */
 (function initPulse(){
   const canvas = document.getElementById('pulseCanvas');
   const ctx = canvas.getContext('2d');
@@ -11,17 +11,17 @@
     canvas.width = width;
     canvas.height = height;
     ctx.clearRect(0, 0, width, height);
+    sweepX = 0;
     lastY = midY();
   }
 
   const GREEN = '#39ff6a';
-  const GREEN_GLOW = 'rgba(57,255,106,0.6)';
+  const GREEN_GLOW = 'rgba(57,255,106,0.55)';
 
-  const BPM = 72;
-  const PERIOD = 60 / BPM;
-  const SPEED = 90;
+  const BEATS_VISIBLE = 3;
+  const SPEED = 140;
   const midY = () => height / 2;
-  const amp = () => height * 0.32;
+  const amp = () => height * 0.30;
 
   function beatShape(local){
     if (local > 0.40 && local < 0.45) return (local - 0.40) * 18;
@@ -31,7 +31,13 @@
     return Math.sin(local * Math.PI * 2) * 0.02;
   }
 
-  let waveTime = 0;
+  function yAt(x){
+    const period = width / BEATS_VISIBLE;
+    const local = (x % period) / period;
+    return midY() - beatShape(local) * amp();
+  }
+
+  let sweepX = 0;
   let lastY = 0;
   let lastTime = performance.now();
 
@@ -42,30 +48,36 @@
     const dt = Math.min((now - lastTime) / 1000, 0.05);
     lastTime = now;
 
-    const shiftPx = SPEED * dt;
-    const shiftInt = Math.max(1, Math.round(shiftPx));
+    const newSweepX = sweepX + SPEED * dt;
 
-    ctx.drawImage(canvas, -shiftInt, 0);
-    ctx.clearRect(width - shiftInt, 0, shiftInt, height);
-
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = GREEN;
-    ctx.shadowColor = GREEN_GLOW;
-    ctx.shadowBlur = 9;
-
-    for (let i = 0; i < shiftInt; i++){
-      waveTime += dt / shiftInt;
-      const local = (waveTime % PERIOD) / PERIOD;
-      const y = midY() - beatShape(local) * amp();
-      const x = width - shiftInt + i;
+    if (newSweepX >= width){
+      ctx.clearRect(0, 0, width, height);
+      sweepX = 0;
+      lastY = yAt(0);
+    } else {
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = GREEN;
+      ctx.shadowColor = GREEN_GLOW;
+      ctx.shadowBlur = 8;
 
       ctx.beginPath();
-      ctx.moveTo(x - 1, lastY);
-      ctx.lineTo(x, y);
+      ctx.moveTo(sweepX, lastY);
+      const y = yAt(newSweepX);
+      ctx.lineTo(newSweepX, y);
       ctx.stroke();
+      ctx.shadowBlur = 0;
+
       lastY = y;
+      sweepX = newSweepX;
+
+      ctx.beginPath();
+      ctx.fillStyle = GREEN;
+      ctx.shadowColor = GREEN_GLOW;
+      ctx.shadowBlur = 12;
+      ctx.arc(sweepX, y, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
     }
-    ctx.shadowBlur = 0;
 
     requestAnimationFrame(draw);
   }
