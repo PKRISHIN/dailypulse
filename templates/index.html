@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DailyPulse — Workout & Readings Log</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">Daily<span class="pulse-word">Pulse</span></div>
+  <div class="topbar-sub">workout &amp; readings log</div>
+</header>
+
+<section class="hero">
+  <div class="monitor-strip">
+    <canvas id="pulseCanvas"></canvas>
+  </div>
+  <div class="hero-inner">
+    <p class="hero-eyebrow">today</p>
+    <h1 class="hero-date" id="todayDate">—</h1>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="hero-stat-num" id="statWorkouts">0</span>
+        <span class="hero-stat-label">workouts logged</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-num" id="statReadings">0</span>
+        <span class="hero-stat-label">readings logged</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="panels">
+
+  <!-- Workout Panel -->
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Workout Log</h2>
+    </div>
+
+    <form id="workoutForm" class="entry-form">
+      <div class="type-toggle" id="typeToggle">
+        <button type="button" class="type-btn active" data-type="strength">Strength</button>
+        <button type="button" class="type-btn" data-type="cardio">Cardio</button>
+      </div>
+
+      <input type="text" id="exerciseInput" placeholder="Exercise name (e.g. Bench Press, Running)" required>
+
+      <div class="entry-form-row" id="strengthFields">
+        <input type="number" id="setsInput" placeholder="Sets" min="0">
+        <input type="number" id="repsInput" placeholder="Reps" min="0">
+        <input type="number" id="weightInput" placeholder="Weight (kg)" min="0" step="0.5">
+      </div>
+
+      <div class="entry-form-row" id="cardioFields" style="display:none;">
+        <input type="number" id="durationInput" placeholder="Duration (min)" min="0">
+        <input type="number" id="distanceInput" placeholder="Distance (km)" min="0" step="0.1">
+        <input type="number" id="stepsInput" placeholder="Steps" min="0" readonly>
+      </div>
+
+      <div class="step-counter" id="stepCounterBox" style="display:none;">
+        <div class="step-counter-readout">
+          <span class="step-count-num" id="liveStepCount">0</span>
+          <span class="step-count-label">steps counted this session</span>
+        </div>
+        <button type="button" class="btn-toggle" id="stepCounterToggle">Start auto step count</button>
+        <p class="step-counter-note">Keep this page open in your browser while you walk — phone motion sensors count steps in real time. Counting pauses if you leave the page.</p>
+      </div>
+
+      <button type="submit" class="btn-add">Log entry</button>
+    </form>
+
+    <div class="entry-list" id="workoutList">
+      <p class="empty-state">No workouts logged yet. Add your first set above.</p>
+    </div>
+  </section>
+
+  <!-- Readings Panel -->
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Health Readings</h2>
+    </div>
+
+    <form id="readingForm" class="entry-form">
+      <div class="entry-form-row">
+        <input type="text" id="labelInput" placeholder="Reading (e.g. Glucose)" required>
+        <input type="number" id="valueInput" placeholder="Value" step="0.1" required>
+        <input type="text" id="unitInput" placeholder="Unit (mg/dL)">
+      </div>
+      <input type="text" id="noteInput" placeholder="Note (optional — e.g. before breakfast)">
+      <button type="submit" class="btn-add">Log reading</button>
+    </form>
+
+    <div class="entry-list" id="readingList">
+      <p class="empty-state">No readings logged yet. Add your first one above.</p>
+    </div>
+  </section>
+
+</main>
+
+<!-- Reminders Bar -->
+<section class="reminders">
+  <div class="reminders-inner">
+    <div class="reminders-text">
+      <h3>Voice reminders</h3>
+      <p>Get a spoken reminder to log your workout or reading — useful when your hands are busy.</p>
+    </div>
+    <div class="reminders-controls">
+      <label class="field-label">Remind me every
+        <select id="intervalSelect">
+          <option value="30">30 min</option>
+          <option value="60" selected>1 hour</option>
+          <option value="120">2 hours</option>
+          <option value="180">3 hours</option>
+        </select>
+      </label>
+      <label class="field-label">Message
+        <select id="messageSelect">
+          <option value="Time to log your workout.">Log workout</option>
+          <option value="Time to log your reading.">Log reading</option>
+          <option value="Reminder from Daily Pulse. Take a moment to check in.">General check-in</option>
+        </select>
+      </label>
+      <button id="reminderToggle" class="btn-toggle">Start reminders</button>
+      <span class="reminders-status" id="reminderStatus">Off</span>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <span>Daily Pulse — a personal log, not a medical device.</span>
+</footer>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
