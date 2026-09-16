@@ -15,8 +15,16 @@
     lastY = midY();
   }
 
-  const GREEN = '#39ff6a';
-  const GREEN_GLOW = 'rgba(57,255,106,0.35)';
+  const GREEN_RGB = [57, 255, 106];
+  const RED_RGB = [255, 59, 59];
+
+  function colorAt(xNorm, alpha){
+    const t = Math.max(0, Math.min(1, (xNorm - 0.5) / 0.5));
+    const r = Math.round(GREEN_RGB[0] + (RED_RGB[0] - GREEN_RGB[0]) * t);
+    const g = Math.round(GREEN_RGB[1] + (RED_RGB[1] - GREEN_RGB[1]) * t);
+    const b = Math.round(GREEN_RGB[2] + (RED_RGB[2] - GREEN_RGB[2]) * t);
+    return `rgba(${r},${g},${b},${alpha})`;
+  }
 
   let BEATS_VISIBLE = 6;
   const SPEED = 140;
@@ -60,10 +68,12 @@
       sweepX = 0;
       lastY = yAt(0);
     } else {
-      ctx.lineWidth = 1.4;
-      ctx.strokeStyle = GREEN;
-      ctx.shadowColor = GREEN_GLOW;
-      ctx.shadowBlur = 3;
+      const xNorm = newSweepX / width;
+      ctx.lineWidth = 1;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = colorAt(xNorm, 1);
+      ctx.shadowColor = colorAt(xNorm, 0.3);
+      ctx.shadowBlur = 2;
 
       ctx.beginPath();
       ctx.moveTo(sweepX, lastY);
@@ -74,14 +84,6 @@
 
       lastY = y;
       sweepX = newSweepX;
-
-      ctx.beginPath();
-      ctx.fillStyle = GREEN;
-      ctx.shadowColor = GREEN_GLOW;
-      ctx.shadowBlur = 6;
-      ctx.arc(sweepX, y, 2.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
     }
 
     requestAnimationFrame(draw);
