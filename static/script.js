@@ -342,11 +342,15 @@ function speak(text){
   window.speechSynthesis.speak(utterance);
 }
 
+function resolveMessage(raw){
+  if (raw === '__todaysplit__') return getTodaySplitSpeech();
+  return raw;
+}
+
 function startReminders(){
   const minutes = parseInt(intervalSelect.value, 10);
-  const message = messageSelect.value;
-  speak('Reminders started. ' + message);
-  reminderTimer = setInterval(() => speak(message), minutes * 60 * 1000);
+  speak('Reminders started. ' + resolveMessage(messageSelect.value));
+  reminderTimer = setInterval(() => speak(resolveMessage(messageSelect.value)), minutes * 60 * 1000);
   reminderToggle.textContent = 'Stop reminders';
   reminderToggle.classList.add('active');
   reminderStatus.textContent = `On · every ${intervalSelect.selectedOptions[0].textContent}`;
@@ -364,6 +368,130 @@ reminderToggle.addEventListener('click', () => {
   if (reminderTimer) stopReminders();
   else startReminders();
 });
+
+
+/* ===================== Weekly Workout Split ===================== */
+const WORKOUT_SPLIT = {
+  0: { label: 'Rest Day', exercises: [] },
+  1: { label: 'Chest / Shoulder / Triceps', exercises: [
+        { name: 'Barbell Bench Press', sets: '4', reps: '8-10', met: 6.0, mins: 12 },
+        { name: 'Overhead Shoulder Press', sets: '3', reps: '8-10', met: 6.0, mins: 10 },
+        { name: 'Incline Dumbbell Press', sets: '3', reps: '10-12', met: 5.0, mins: 10 },
+        { name: 'Triceps Rope Pushdown', sets: '3', reps: '12-15', met: 4.0, mins: 8 }
+      ]},
+  2: { label: 'Back / Biceps / Forearm', exercises: [
+        { name: 'Pull-Ups / Lat Pulldown', sets: '4', reps: '8-10', met: 6.0, mins: 12 },
+        { name: 'Barbell Bent-Over Row', sets: '3', reps: '8-10', met: 6.0, mins: 10 },
+        { name: 'Dumbbell Bicep Curl', sets: '3', reps: '10-12', met: 3.5, mins: 8 },
+        { name: 'Hammer Curl (forearm)', sets: '3', reps: '12-15', met: 3.5, mins: 8 }
+      ]},
+  3: { label: 'Legs / Abs / Cardio', exercises: [
+        { name: 'Barbell Squat', sets: '4', reps: '8-10', met: 6.0, mins: 14 },
+        { name: 'Walking Lunges', sets: '3', reps: '12 each leg', met: 5.0, mins: 10 },
+        { name: 'Hanging Leg Raise', sets: '3', reps: '15', met: 4.0, mins: 8 },
+        { name: 'Treadmill / Cycling', sets: '1', reps: '15-20 min', met: 7.5, mins: 18 }
+      ]},
+  4: null,
+  5: null,
+  6: null,
+};
+WORKOUT_SPLIT[4] = WORKOUT_SPLIT[1];
+WORKOUT_SPLIT[5] = WORKOUT_SPLIT[2];
+WORKOUT_SPLIT[6] = WORKOUT_SPLIT[3];
+
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+function getTodaySplit(){
+  return WORKOUT_SPLIT[new Date().getDay()];
+}
+
+function exerciseCalories(ex, weightKg){
+  return ex.met * weightKg * (ex.mins / 60);
+}
+
+function renderSplitWeek(){
+  const container = document.getElementById('splitWeek');
+  const today = new Date().getDay();
+  container.innerHTML = DAY_NAMES.map((name, i) => {
+    const isRest = WORKOUT_SPLIT[i].exercises.length === 0;
+    const isToday = i === today;
+    return `<div class="day-chip ${isToday ? 'is-today' : ''} ${isRest ? 'is-rest' : ''}">
+      <span class="day-chip-name">${name}</span>
+      <span class="day-chip-tag">${isRest ? 'Rest' : 'Training'}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderTodaySplit(){
+  const split = getTodaySplit();
+  const container = document.getElementById('splitToday');
+
+  if (split.exercises.length === 0){
+    container.innerHTML = `
+      <div class="split-rest">
+        <h3>Rest Day</h3>
+        <p>No training scheduled today — recovery is part of the plan.</p>
+      </div>`;
+    return;
+  }
+
+  const weight = parseFloat(document.getElementById('bodyWeightInput').value) || null;
+
+  container.innerHTML = `
+    <h3>${split.label}</h3>
+    <div class="exercise-list">
+      ${split.exercises.map(ex => {
+        const cal = weight ? Math.round(exerciseCalories(ex, weight)) : null;
+        return `
+        <div class="exercise-item">
+          <div class="exercise-main">
+            <span class="exercise-name">${ex.name}</span>
+            <span class="exercise-goal">${ex.sets} sets × ${ex.reps}</span>
+          </div>
+          <span class="exercise-cal">${cal !== null ? cal + ' kcal' : '—'}</span>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+  updateCalorieTotal();
+}
+
+function updateCalorieTotal(){
+  const split = getTodaySplit();
+  const resultEl = document.getElementById('calorieResult');
+  const weight = parseFloat(document.getElementById('bodyWeightInput').value);
+
+  if (split.exercises.length === 0){
+    resultEl.textContent = 'Rest day — no session to estimate.';
+    return;
+  }
+  if (!weight){
+    resultEl.textContent = 'Enter your weight to see an estimated calorie burn for each exercise today.';
+    return;
+  }
+  const total = split.exercises.reduce((sum, ex) => sum + exerciseCalories(ex, weight), 0);
+  resultEl.innerHTML = `Estimated total for today\'s session: <strong>${Math.round(total)} kcal</strong>`;
+}
+
+function getTodaySplitSpeech(){
+  const split = getTodaySplit();
+  if (split.exercises.length === 0){
+    return "Today is a rest day. No training scheduled.";
+  }
+  const list = split.exercises.map(ex => `${ex.name}, ${ex.sets} sets of ${ex.reps}`).join('. ');
+  return `Today\'s split is ${split.label}. Your exercises: ${list}.`;
+}
+
+document.getElementById('bodyWeightInput').addEventListener('input', () => {
+  renderTodaySplit();
+});
+
+document.getElementById('announceSplitBtn').addEventListener('click', () => {
+  speak(getTodaySplitSpeech());
+});
+
+renderSplitWeek();
+renderTodaySplit();
 
 /* ===================== Init ===================== */
 loadWorkouts();

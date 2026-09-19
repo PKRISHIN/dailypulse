@@ -38,6 +38,28 @@
   </div>
 </section>
 
+<!-- Weekly Split -->
+<section class="split-section">
+  <div class="split-head">
+    <h2>This Week's Split</h2>
+    <p class="split-sub">Monday–Saturday training days, Sunday rest.</p>
+  </div>
+
+  <div class="split-week" id="splitWeek"></div>
+
+  <div class="split-today-card" id="splitToday"></div>
+
+  <div class="split-calc">
+    <label class="field-label">Body weight (kg)
+      <input type="number" id="bodyWeightInput" placeholder="e.g. 70" min="30" step="0.5">
+    </label>
+    <div class="split-calc-result" id="calorieResult">Enter your weight to see an estimated calorie burn for each exercise today.</div>
+    <p class="split-calc-note">Calorie estimates use a standard fitness formula (MET values) — a rough guide, not a medical measurement. Blood sugar response to exercise varies too much person to person to estimate this way; log a reading before and after your workout in Health Readings below instead, to see your own real pattern.</p>
+  </div>
+
+  <button id="announceSplitBtn" class="btn-toggle">🔊 Announce today's workout</button>
+</section>
+
 <main class="panels">
 
   <!-- Workout Panel -->
@@ -127,6 +149,7 @@
           <option value="Time to log your workout.">Log workout</option>
           <option value="Time to log your reading.">Log reading</option>
           <option value="Reminder from Daily Pulse. Take a moment to check in.">General check-in</option>
+          <option value="__todaysplit__">Today's workout split</option>
         </select>
       </label>
       <button id="reminderToggle" class="btn-toggle">Start reminders</button>
