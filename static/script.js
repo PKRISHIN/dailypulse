@@ -1,4 +1,4 @@
-/* ======================== Hero pulse-line animation (Canvas 2D — left-to-right sweep, ventilator style) ===================== */
+/* ===================== Hero pulse-line animation (Canvas 2D — left-to-right sweep, ventilator style) ===================== */
 (function initPulse(){
   const canvas = document.getElementById('pulseCanvas');
   const ctx = canvas.getContext('2d');
@@ -371,60 +371,73 @@ reminderToggle.addEventListener('click', () => {
 });
 
 /* ===================== Weekly Workout Split ===================== */
-// met = standard MET value (Compendium of Physical Activities, moderate-vigorous effort)
-// mins = typical time to complete that exercise including rest, used only for the calorie estimate
+// Each muscle has 4 exercise variations (A-D). One is picked automatically
+// based on the current week number, so the plan changes every week and
+// cycles back after 4 weeks. met/mins are used only for the calorie estimate.
+function muscle(name, variations){ return { name, variations }; }
+function ex(name, sets, reps, met, mins){ return { name, sets, reps, met, mins }; }
+
 const WORKOUT_SPLIT = {
   0: { label: 'Rest Day', muscles: [] }, // Sunday
   1: { label: 'Chest / Shoulder / Triceps', muscles: [
-        { name: 'Chest', exercises: [
-            { name: 'Barbell Bench Press', sets: '3', reps: '8-10', met: 6.0, mins: 12 },
-            { name: 'Incline Dumbbell Press', sets: '3', reps: '10-12', met: 5.0, mins: 10 },
-            { name: 'Chest Fly (Pec Deck)', sets: '3', reps: '12-15', met: 4.0, mins: 8 }
-        ]},
-        { name: 'Shoulder', exercises: [
-            { name: 'Overhead Shoulder Press', sets: '3', reps: '8-10', met: 6.0, mins: 10 },
-            { name: 'Lateral Raise', sets: '3', reps: '12-15', met: 3.5, mins: 8 },
-            { name: 'Front Raise', sets: '3', reps: '12-15', met: 3.5, mins: 8 }
-        ]},
-        { name: 'Triceps', exercises: [
-            { name: 'Triceps Rope Pushdown', sets: '3', reps: '12-15', met: 4.0, mins: 8 },
-            { name: 'Skull Crushers', sets: '3', reps: '10-12', met: 4.0, mins: 9 },
-            { name: 'Overhead Triceps Extension', sets: '3', reps: '12-15', met: 3.5, mins: 8 }
-        ]}
+        muscle('Chest', [
+          [ ex('Barbell Bench Press','3','8-10',6.0,12), ex('Incline Dumbbell Press','3','10-12',5.0,10), ex('Chest Fly (Pec Deck)','3','12-15',4.0,8) ],
+          [ ex('Machine Chest Press','3','10-12',5.0,10), ex('Decline Bench Press','3','8-10',6.0,12), ex('Cable Crossover','3','12-15',4.0,8) ],
+          [ ex('Dumbbell Bench Press','3','8-10',5.5,11), ex('Incline Barbell Press','3','8-10',6.0,12), ex('Dumbbell Pullover','3','12-15',4.0,8) ],
+          [ ex('Smith Machine Bench Press','3','8-10',5.5,11), ex('Incline Cable Fly','3','12-15',4.0,8), ex('Chest Dips','3','8-12',5.0,9) ]
+        ]),
+        muscle('Shoulder', [
+          [ ex('Overhead Shoulder Press','3','8-10',6.0,10), ex('Lateral Raise','3','12-15',3.5,8), ex('Front Raise','3','12-15',3.5,8) ],
+          [ ex('Arnold Press','3','8-10',6.0,10), ex('Cable Lateral Raise','3','12-15',3.5,8), ex('Rear Delt Fly','3','12-15',3.5,8) ],
+          [ ex('Dumbbell Shoulder Press','3','8-10',5.5,10), ex('Upright Row','3','10-12',4.0,8), ex('Face Pull','3','15-20',3.5,8) ],
+          [ ex('Machine Shoulder Press','3','10-12',5.0,10), ex('Cable Front Raise','3','12-15',3.5,8), ex('Reverse Pec Deck','3','12-15',3.5,8) ]
+        ]),
+        muscle('Triceps', [
+          [ ex('Triceps Rope Pushdown','3','12-15',4.0,8), ex('Skull Crushers','3','10-12',4.0,9), ex('Overhead Triceps Extension','3','12-15',3.5,8) ],
+          [ ex('Close-Grip Bench Press','3','8-10',5.5,10), ex('Triceps Dips','3','8-12',5.0,9), ex('Single-Arm Cable Extension','3','12-15',3.5,7) ],
+          [ ex('Diamond Push-Ups','3','10-15',4.0,7), ex('EZ-Bar Skull Crushers','3','10-12',4.0,9), ex('Cable Kickback','3','12-15',3.0,7) ],
+          [ ex('Triceps Dip Machine','3','10-12',4.5,8), ex('Overhead Dumbbell Extension','3','12-15',3.5,8), ex('V-Bar Pushdown','3','12-15',3.5,7) ]
+        ])
       ]},
   2: { label: 'Back / Biceps / Forearm', muscles: [
-        { name: 'Back', exercises: [
-            { name: 'Pull-Ups / Lat Pulldown', sets: '3', reps: '8-10', met: 6.0, mins: 12 },
-            { name: 'Barbell Bent-Over Row', sets: '3', reps: '8-10', met: 6.0, mins: 10 },
-            { name: 'Seated Cable Row', sets: '3', reps: '10-12', met: 5.0, mins: 9 }
-        ]},
-        { name: 'Biceps', exercises: [
-            { name: 'Dumbbell Bicep Curl', sets: '3', reps: '10-12', met: 3.5, mins: 8 },
-            { name: 'Barbell Curl', sets: '3', reps: '8-10', met: 3.5, mins: 8 },
-            { name: 'Concentration Curl', sets: '3', reps: '12-15', met: 3.0, mins: 7 }
-        ]},
-        { name: 'Forearm', exercises: [
-            { name: 'Hammer Curl', sets: '3', reps: '12-15', met: 3.5, mins: 8 },
-            { name: 'Wrist Curl', sets: '3', reps: '15-20', met: 3.0, mins: 6 },
-            { name: 'Reverse Curl', sets: '3', reps: '12-15', met: 3.0, mins: 7 }
-        ]}
+        muscle('Back', [
+          [ ex('Pull-Ups / Lat Pulldown','3','8-10',6.0,12), ex('Barbell Bent-Over Row','3','8-10',6.0,10), ex('Seated Cable Row','3','10-12',5.0,9) ],
+          [ ex('Deadlift','3','6-8',6.5,14), ex('T-Bar Row','3','8-10',6.0,10), ex('Single-Arm Dumbbell Row','3','10-12',5.0,9) ],
+          [ ex('Wide-Grip Lat Pulldown','3','10-12',5.0,10), ex('Chest-Supported Row','3','10-12',5.0,9), ex('Straight-Arm Pulldown','3','12-15',4.0,7) ],
+          [ ex('Chin-Ups','3','6-10',6.0,11), ex('Pendlay Row','3','8-10',6.0,10), ex('Face Pull','3','15-20',3.5,7) ]
+        ]),
+        muscle('Biceps', [
+          [ ex('Dumbbell Bicep Curl','3','10-12',3.5,8), ex('Barbell Curl','3','8-10',3.5,8), ex('Concentration Curl','3','12-15',3.0,7) ],
+          [ ex('Preacher Curl','3','10-12',3.5,8), ex('Cable Curl','3','12-15',3.0,7), ex('Incline Dumbbell Curl','3','10-12',3.5,8) ],
+          [ ex('Hammer Curl','3','10-12',3.5,8), ex('EZ-Bar Curl','3','8-10',3.5,8), ex('Spider Curl','3','12-15',3.0,7) ],
+          [ ex('Cable Rope Curl','3','12-15',3.0,7), ex('Zottman Curl','3','10-12',3.5,8), ex('Drag Curl','3','10-12',3.0,7) ]
+        ]),
+        muscle('Forearm', [
+          [ ex('Hammer Curl','3','12-15',3.5,8), ex('Wrist Curl','3','15-20',3.0,6), ex('Reverse Curl','3','12-15',3.0,7) ],
+          [ ex("Farmer's Carry",'3','30-40 sec',4.0,8), ex('Reverse Wrist Curl','3','15-20',3.0,6), ex('Plate Pinch Hold','3','20-30 sec',3.0,6) ],
+          [ ex('Behind-the-Back Wrist Curl','3','15-20',3.0,6), ex('Dead Hang','3','20-30 sec',3.0,6), ex('Wrist Roller','3','2-3 reps',3.5,7) ],
+          [ ex('Reverse Barbell Curl','3','10-12',3.5,8), ex('Grip Squeeze','3','15-20',3.0,6), ex('Finger Extensions','3','15-20',2.5,5) ]
+        ])
       ]},
   3: { label: 'Legs / Abs / Cardio', muscles: [
-        { name: 'Legs', exercises: [
-            { name: 'Barbell Squat', sets: '3', reps: '8-10', met: 6.0, mins: 14 },
-            { name: 'Walking Lunges', sets: '3', reps: '12 each leg', met: 5.0, mins: 10 },
-            { name: 'Leg Press', sets: '3', reps: '10-12', met: 5.5, mins: 10 }
-        ]},
-        { name: 'Abs', exercises: [
-            { name: 'Hanging Leg Raise', sets: '3', reps: '15', met: 4.0, mins: 8 },
-            { name: 'Plank', sets: '3', reps: '45-60 sec', met: 3.5, mins: 6 },
-            { name: 'Cable Crunch', sets: '3', reps: '15-20', met: 3.5, mins: 7 }
-        ]},
-        { name: 'Cardio', exercises: [
-            { name: 'Treadmill Running', sets: '1', reps: '15-20 min', met: 8.0, mins: 18 },
-            { name: 'Cycling', sets: '1', reps: '15-20 min', met: 7.5, mins: 18 },
-            { name: 'Jump Rope', sets: '1', reps: '10 min', met: 9.0, mins: 10 }
-        ]}
+        muscle('Legs', [
+          [ ex('Barbell Squat','3','8-10',6.0,14), ex('Walking Lunges','3','12 each leg',5.0,10), ex('Leg Press','3','10-12',5.5,10) ],
+          [ ex('Romanian Deadlift','3','8-10',6.0,12), ex('Bulgarian Split Squat','3','10-12 each',5.5,10), ex('Leg Extension','3','12-15',4.0,8) ],
+          [ ex('Front Squat','3','6-8',6.5,13), ex('Step-Ups','3','10-12 each',5.0,9), ex('Leg Curl','3','12-15',4.0,8) ],
+          [ ex('Hack Squat','3','8-10',6.0,12), ex('Goblet Squat','3','10-12',5.0,9), ex('Calf Raise','3','15-20',3.5,7) ]
+        ]),
+        muscle('Abs', [
+          [ ex('Hanging Leg Raise','3','15',4.0,8), ex('Plank','3','45-60 sec',3.5,6), ex('Cable Crunch','3','15-20',3.5,7) ],
+          [ ex('Bicycle Crunch','3','20',3.5,7), ex('Russian Twist','3','20',3.5,7), ex('Mountain Climbers','3','30 sec',5.0,6) ],
+          [ ex('Sit-Ups','3','15-20',3.5,7), ex('Side Plank','3','30-45 sec each',3.5,6), ex('Toe Touches','3','15-20',3.0,6) ],
+          [ ex('V-Ups','3','12-15',3.5,7), ex('Ab Wheel Rollout','3','8-10',4.0,8), ex('Flutter Kicks','3','30 sec',3.5,6) ]
+        ]),
+        muscle('Cardio', [
+          [ ex('Treadmill Running','1','15-20 min',8.0,18), ex('Cycling','1','15-20 min',7.5,18), ex('Jump Rope','1','10 min',9.0,10) ],
+          [ ex('Stair Climber','1','15 min',8.0,15), ex('Rowing Machine','1','15-20 min',7.0,18), ex('Elliptical','1','15-20 min',6.5,18) ],
+          [ ex('Sprint Intervals','1','10-12 min',9.5,12), ex('Swimming','1','20 min',7.0,20), ex('Jump Squats','3','15',6.0,6) ],
+          [ ex('Incline Brisk Walk','1','20 min',6.0,20), ex('Battle Ropes','3','30 sec',8.0,6), ex('Burpees','3','12-15',8.5,8) ]
+        ])
       ]},
   4: null, // filled below (same as Monday)
   5: null, // filled below (same as Tuesday)
@@ -436,13 +449,61 @@ WORKOUT_SPLIT[6] = WORKOUT_SPLIT[3];
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+function getWeekIndex(){
+  // ISO-ish week number, cycles through 4 variations, changes every week
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 1);
+  const days = Math.floor((now - start) / 86400000);
+  const week = Math.ceil((days + start.getDay() + 1) / 7);
+  return week % 4;
+}
+
 function getTodaySplit(){
   return WORKOUT_SPLIT[new Date().getDay()];
 }
 
-function exerciseCalories(ex, weightKg){
+function todaysExercisesFor(muscleObj){
+  return muscleObj.variations[getWeekIndex()];
+}
+
+function exerciseCalories(exObj, weightKg){
   // calories = MET * weight(kg) * time(hours)
-  return ex.met * weightKg * (ex.mins / 60);
+  return exObj.met * weightKg * (exObj.mins / 60);
+}
+
+/* ---- Simple illustrative body silhouette (not anatomically precise) ---- */
+const BODY_REGION_MAP = {
+  'Chest':   { view: 'front', regions: ['chest'] },
+  'Shoulder':{ view: 'front', regions: ['shoulders'] },
+  'Triceps': { view: 'back',  regions: ['arms'] },
+  'Back':    { view: 'back',  regions: ['upperback'] },
+  'Biceps':  { view: 'front', regions: ['arms'] },
+  'Forearm': { view: 'front', regions: ['forearm'] },
+  'Legs':    { view: 'front', regions: ['legs'] },
+  'Abs':     { view: 'front', regions: ['abs'] },
+  'Cardio':  { view: 'front', regions: ['legs', 'chest'] }
+};
+
+function bodyDiagram(muscleName){
+  const map = BODY_REGION_MAP[muscleName] || { view: 'front', regions: [] };
+  const on = (key) => map.regions.includes(key) ? 'var(--pulse)' : '#2a3532';
+  const torsoFill = on(map.view === 'back' ? 'upperback' : 'chest');
+  return `
+    <svg viewBox="0 0 60 130" class="body-diagram" aria-hidden="true">
+      <circle cx="30" cy="12" r="9" fill="#3a4744"/>
+      <rect x="12" y="24" width="9" height="11" rx="3" fill="${on('shoulders')}"/>
+      <rect x="39" y="24" width="9" height="11" rx="3" fill="${on('shoulders')}"/>
+      <rect x="20" y="22" width="20" height="36" rx="4" fill="${torsoFill}"/>
+      <rect x="9" y="34" width="8" height="24" rx="3" fill="${on('arms')}"/>
+      <rect x="43" y="34" width="8" height="24" rx="3" fill="${on('arms')}"/>
+      <rect x="9" y="58" width="8" height="16" rx="3" fill="${on('forearm')}"/>
+      <rect x="43" y="58" width="8" height="16" rx="3" fill="${on('forearm')}"/>
+      <rect x="21" y="56" width="18" height="18" rx="3" fill="${on('abs')}"/>
+      <rect x="20" y="76" width="8" height="42" rx="3" fill="${on('legs')}"/>
+      <rect x="32" y="76" width="8" height="42" rx="3" fill="${on('legs')}"/>
+    </svg>
+    <span class="body-diagram-label">${map.view === 'back' ? 'Back view' : 'Front view'} \u00b7 illustrative</span>
+  `;
 }
 
 function renderSplitWeek(){
@@ -466,39 +527,46 @@ function renderTodaySplit(){
     container.innerHTML = `
       <div class="split-rest">
         <h3>Rest Day</h3>
-        <p>No training scheduled today — recovery is part of the plan.</p>
+        <p>No training scheduled today \u2014 recovery is part of the plan.</p>
       </div>`;
     return;
   }
 
   const weight = parseFloat(document.getElementById('bodyWeightInput').value) || null;
+  const weekNum = getWeekIndex() + 1;
 
   container.innerHTML = `
-    <h3>${split.label}</h3>
-    ${split.muscles.map(muscle => `
+    <h3>${split.label} <span class="week-tag">Week variation ${weekNum} of 4</span></h3>
+    ${split.muscles.map(m => {
+      const exercises = todaysExercisesFor(m);
+      return `
       <div class="muscle-group">
-        <p class="muscle-group-name">${muscle.name}</p>
+        <div class="muscle-group-head">
+          ${bodyDiagram(m.name)}
+          <p class="muscle-group-name">${m.name}</p>
+        </div>
         <div class="exercise-list">
-          ${muscle.exercises.map(ex => {
-            const cal = weight ? Math.round(exerciseCalories(ex, weight)) : null;
+          ${exercises.map(exItem => {
+            const cal = weight ? Math.round(exerciseCalories(exItem, weight)) : null;
             return `
             <div class="exercise-item">
               <div class="exercise-main">
-                <span class="exercise-name">${ex.name}</span>
-                <span class="exercise-goal">${ex.sets} sets × ${ex.reps}</span>
+                <span class="exercise-name">${exItem.name}</span>
+                <span class="exercise-goal">${exItem.sets} sets \u00d7 ${exItem.reps}</span>
               </div>
-              <span class="exercise-cal">${cal !== null ? cal + ' kcal' : '—'}</span>
+              <span class="exercise-cal">${cal !== null ? cal + ' kcal' : '\u2014'}</span>
             </div>`;
           }).join('')}
         </div>
       </div>
-    `).join('')}
+    `;
+    }).join('')}
   `;
   updateCalorieTotal();
 }
 
 function allTodayExercises(split){
-  return split.muscles.flatMap(m => m.exercises);
+  return split.muscles.flatMap(m => todaysExercisesFor(m));
 }
 
 function updateCalorieTotal(){
@@ -507,14 +575,14 @@ function updateCalorieTotal(){
   const weight = parseFloat(document.getElementById('bodyWeightInput').value);
 
   if (split.muscles.length === 0){
-    resultEl.textContent = 'Rest day — no session to estimate.';
+    resultEl.textContent = 'Rest day \u2014 no session to estimate.';
     return;
   }
   if (!weight){
     resultEl.textContent = 'Enter your weight to see an estimated calorie burn for each exercise today.';
     return;
   }
-  const total = allTodayExercises(split).reduce((sum, ex) => sum + exerciseCalories(ex, weight), 0);
+  const total = allTodayExercises(split).reduce((sum, exItem) => sum + exerciseCalories(exItem, weight), 0);
   resultEl.innerHTML = `Estimated total for today's session: <strong>${Math.round(total)} kcal</strong>`;
 }
 
@@ -523,9 +591,10 @@ function getTodaySplitSpeech(){
   if (split.muscles.length === 0){
     return "Today is a rest day. No training scheduled.";
   }
-  const parts = split.muscles.map(muscle => {
-    const list = muscle.exercises.map(ex => `${ex.name}, ${ex.sets} sets of ${ex.reps}`).join('. ');
-    return `For ${muscle.name}: ${list}`;
+  const parts = split.muscles.map(m => {
+    const exercises = todaysExercisesFor(m);
+    const list = exercises.map(exItem => `${exItem.name}, ${exItem.sets} sets of ${exItem.reps}`).join('. ');
+    return `For ${m.name}: ${list}`;
   }).join('. ');
   return `Today's split is ${split.label}. ${parts}.`;
 }
@@ -536,7 +605,7 @@ document.getElementById('bodyWeightInput').addEventListener('input', () => {
 
 let isAnnouncing = false;
 const announceBtn = document.getElementById('announceSplitBtn');
-const ANNOUNCE_DEFAULT_LABEL = "🔊 Announce today's workout";
+const ANNOUNCE_DEFAULT_LABEL = "\ud83d\udd0a Announce today's workout";
 
 announceBtn.addEventListener('click', () => {
   if (isAnnouncing){
@@ -558,7 +627,7 @@ announceBtn.addEventListener('click', () => {
     announceBtn.textContent = ANNOUNCE_DEFAULT_LABEL;
   };
   isAnnouncing = true;
-  announceBtn.textContent = "⏹ Stop announcement";
+  announceBtn.textContent = "\u23f9 Stop announcement";
   window.speechSynthesis.speak(utterance);
 });
 
