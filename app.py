@@ -8,6 +8,7 @@ app = Flask(__name__)
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 WORKOUTS_FILE = os.path.join(DATA_DIR, 'workouts.json')
 READINGS_FILE = os.path.join(DATA_DIR, 'readings.json')
+PROFILE_FILE = os.path.join(DATA_DIR, 'profile.json')
 
 os.makedirs(DATA_DIR, exist_ok=True)
 
@@ -102,6 +103,28 @@ def delete_reading(entry_id):
     data = [d for d in data if d['id'] != entry_id]
     _save(READINGS_FILE, data)
     return jsonify({'deleted': entry_id})
+
+
+# ---------- Profile (remembers body weight for calorie estimates) ----------
+
+@app.route('/api/profile', methods=['GET'])
+def get_profile():
+    if not os.path.exists(PROFILE_FILE):
+        return jsonify({})
+    with open(PROFILE_FILE, 'r') as f:
+        try:
+            return jsonify(json.load(f))
+        except json.JSONDecodeError:
+            return jsonify({})
+
+
+@app.route('/api/profile', methods=['POST'])
+def save_profile():
+    body = request.get_json(force=True)
+    profile = {'weight': body.get('weight', '')}
+    with open(PROFILE_FILE, 'w') as f:
+        json.dump(profile, f, indent=2)
+    return jsonify(profile)
 
 
 if __name__ == '__main__':

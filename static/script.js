@@ -630,6 +630,35 @@ announceBtn.addEventListener('click', () => {
   announceBtn.textContent = "\u23f9 Stop announcement";
   window.speechSynthesis.speak(utterance);
 });
+const bodyWeightInput = document.getElementById('bodyWeightInput');
+
+async function loadProfile(){
+  const res = await fetch('/api/profile');
+  const profile = await res.json();
+
+  if (profile.weight){
+    bodyWeightInput.value = profile.weight;
+    renderTodaySplit();
+  }
+}
+
+let weightSaveTimer;
+
+bodyWeightInput.addEventListener('input', () => {
+  renderTodaySplit();
+
+  clearTimeout(weightSaveTimer);
+  weightSaveTimer = setTimeout(async () => {
+    await fetch('/api/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        weight: bodyWeightInput.value
+      })
+    });
+  }, 500);
+});
+
 
 renderSplitWeek();
 renderTodaySplit();
@@ -637,3 +666,5 @@ renderTodaySplit();
 /* ===================== Init ===================== */
 loadWorkouts();
 loadReadings();
+loadProfile();
+
