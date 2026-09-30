@@ -473,16 +473,221 @@ function exerciseCalories(exObj, weightKg){
 
 /* ---- Simple illustrative body silhouette (not anatomically precise) ---- */
 const BODY_REGION_MAP = {
-  'Chest':   { view: 'front', regions: ['chest'] },
-  'Shoulder':{ view: 'front', regions: ['shoulders'] },
-  'Triceps': { view: 'back',  regions: ['arms'] },
-  'Back':    { view: 'back',  regions: ['upperback'] },
-  'Biceps':  { view: 'front', regions: ['arms'] },
-  'Forearm': { view: 'front', regions: ['forearm'] },
-  'Legs':    { view: 'front', regions: ['legs'] },
-  'Abs':     { view: 'front', regions: ['abs'] },
-  'Cardio':  { view: 'front', regions: ['legs', 'chest'] }
+  chest: {
+    view: 'front',
+    regions: ['chest']
+  },
+  shoulders: {
+    view: 'front',
+    regions: ['shoulders']
+  },
+  arms: {
+    view: 'front',
+    regions: ['arms']
+  },
+  forearm: {
+    view: 'front',
+    regions: ['forearm']
+  },
+  upperback: {
+    view: 'back',
+    regions: ['upperback']
+  },
+  abs: {
+    view: 'front',
+    regions: ['abs']
+  },
+  legs: {
+    view: 'front',
+    regions: ['legs']
+  },
+  fullbody: {
+    view: 'front',
+    regions: ['legs', 'chest', 'shoulders', 'abs']
+  }
 };
+
+function getExerciseMuscle(exerciseName, groupName){
+  const name = exerciseName.toLowerCase();
+
+  // Chest variations
+  if (
+    name.includes('bench press') ||
+    name.includes('chest press') ||
+    name.includes('chest fly') ||
+    name.includes('crossover') ||
+    name.includes('pullover') ||
+    name.includes('chest dips')
+  ){
+    return 'chest';
+  }
+
+  // Shoulder variations
+  if (
+    name.includes('shoulder press') ||
+    name.includes('arnold press') ||
+    name.includes('lateral raise') ||
+    name.includes('front raise') ||
+    name.includes('rear delt') ||
+    name.includes('upright row') ||
+    name.includes('face pull') ||
+    name.includes('pec deck')
+  ){
+    return 'shoulders';
+  }
+
+  // Triceps variations
+  if (
+    name.includes('triceps') ||
+    name.includes('skull crusher') ||
+    name.includes('close-grip') ||
+    name.includes('diamond push') ||
+    name.includes('pushdown') ||
+    name.includes('kickback') ||
+    name.includes('overhead dumbbell')
+  ){
+    return 'arms';
+  }
+
+  // Back variations
+  if (
+    name.includes('pull-up') ||
+    name.includes('pulldown') ||
+    name.includes('deadlift') ||
+    name.includes('row') ||
+    name.includes('back') ||
+    name.includes('hang') ||
+    name.includes('rope')
+  ){
+    return 'upperback';
+  }
+
+  // Biceps variations
+  if (
+    name.includes('curl') ||
+    name.includes('preacher') ||
+    name.includes('hammer')
+  ){
+    return 'arms';
+  }
+
+  // Forearm variations
+  if (
+    name.includes('wrist') ||
+    name.includes('farmer') ||
+    name.includes('grip') ||
+    name.includes('finger') ||
+    name.includes('plate pinch')
+  ){
+    return 'forearm';
+  }
+
+  // Abs variations
+  if (
+    name.includes('plank') ||
+    name.includes('crunch') ||
+    name.includes('sit-up') ||
+    name.includes('sit up') ||
+    name.includes('leg raise') ||
+    name.includes('russian twist') ||
+    name.includes('mountain climber') ||
+    name.includes('toe touch') ||
+    name.includes('v-up') ||
+    name.includes('ab wheel') ||
+    name.includes('flutter') ||
+    name.includes('bicycle')
+  ){
+    return 'abs';
+  }
+
+  // Cardio and leg variations
+  if (
+    name.includes('run') ||
+    name.includes('cycling') ||
+    name.includes('bike') ||
+    name.includes('jump rope') ||
+    name.includes('stair') ||
+    name.includes('elliptical') ||
+    name.includes('swimming') ||
+    name.includes('walk') ||
+    name.includes('sprint') ||
+    name.includes('burpee') ||
+    name.includes('squat') ||
+    name.includes('lunge') ||
+    name.includes('leg') ||
+    name.includes('step-up') ||
+    name.includes('calf') ||
+    name.includes('battle rope')
+  ){
+    return name.includes('burpee') || name.includes('battle rope')
+      ? 'fullbody'
+      : 'legs';
+  }
+
+  // Fallback: use the muscle group
+  const fallback = {
+    Chest: 'chest',
+    Shoulder: 'shoulders',
+    Triceps: 'arms',
+    Back: 'upperback',
+    Biceps: 'arms',
+    Forearm: 'forearm',
+    Legs: 'legs',
+    Abs: 'abs',
+    Cardio: 'fullbody'
+  };
+
+  return fallback[groupName] || 'fullbody';
+}
+
+function bodyDiagram(muscleKey){
+  const map = BODY_REGION_MAP[muscleKey] || BODY_REGION_MAP.fullbody;
+
+  const isTarget = (region) => {
+    return map.regions.includes(region) ? 'target' : '';
+  };
+
+  return `
+    <div class="muscle-badge">
+      <svg viewBox="0 0 60 130" class="body-diagram"
+           aria-label="${muscleKey} target muscle diagram">
+
+        <circle class="bp-head" cx="30" cy="12" r="9"/>
+
+        <rect class="bp-shoulder ${isTarget('shoulders')}"
+              x="12" y="24" width="9" height="11" rx="3"/>
+        <rect class="bp-shoulder ${isTarget('shoulders')}"
+              x="39" y="24" width="9" height="11" rx="3"/>
+
+        <rect class="bp-torso ${isTarget('chest') || isTarget('upperback') ? 'target' : ''}"
+              x="20" y="22" width="20" height="36" rx="4"/>
+
+        <rect class="bp-arm ${isTarget('arms')}"
+              x="9" y="34" width="8" height="24" rx="3"/>
+        <rect class="bp-arm ${isTarget('arms')}"
+              x="43" y="34" width="8" height="24" rx="3"/>
+
+        <rect class="bp-forearm ${isTarget('forearm')}"
+              x="9" y="58" width="8" height="16" rx="3"/>
+        <rect class="bp-forearm ${isTarget('forearm')}"
+              x="43" y="58" width="8" height="16" rx="3"/>
+
+        <rect class="bp-abs ${isTarget('abs')}"
+              x="21" y="56" width="18" height="18" rx="3"/>
+
+        <rect class="bp-leg ${isTarget('legs')}"
+              x="20" y="76" width="8" height="42" rx="3"/>
+        <rect class="bp-leg ${isTarget('legs')}"
+              x="32" y="76" width="8" height="42" rx="3"/>
+      </svg>
+
+      <span class="muscle-badge-label">
+        ${map.view === 'back' ? 'Back' : 'Front'} · ${muscleKey}
+      </span>
+    </div>
+  `;
+}
+
 
 function bodyDiagram(muscleName){
   const map = BODY_REGION_MAP[muscleName] || { view: 'front', regions: [] };
